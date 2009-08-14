@@ -1,0 +1,63 @@
+=Scrappy
+An attempt at creating a DSL for parsing texts that don't have much form.
+
+==Overview
+Instead of throwing together lines and lines of regular expressions and/or string procedures, Scrappy lets you create string matching blocks that have context. The #match method defines at least one start expression and optional stop expressions. Whatever is found from the start/end expressions gets passed to the block. Blocks can continue calling #match to provide a nested context.
+
+==Example
+  class TestParser
+    
+    include Scrappy::Mapper
+    
+    before do
+      @context ||= {}
+      context[:text] = []
+      context[:line_items] = []
+      context[:inventory_ids] = []
+    end
+  
+    # everything from "An Introdution" to "CREDITS"
+    match /An Introdution/, /Blah/ do |line|
+      context[:text] << line
+    end
+  
+    match /^\s+[0-9]+\. ([\w+ ]+)$/ do |line,matches|
+      context[:line_items] += matches.flatten
+    end
+  
+    match /INVENTORY IDS/, /LAST LINE/ do |line,matches|
+      # rules for things between INVENTORY IDS nad LAST LINE
+      match /^\s+([0-9]+)/ do |line,matches|
+        context[:inventory_ids] += matches.flatten
+      end
+      match /©([0-9]+)/ do |line,matches|
+        context[:copyright] = matches.to_s
+      end
+    end
+  
+    match /CREDITS\: (\w+)/ do |line,matches|
+      context[:author] = matches.to_s
+    end
+  
+  end
+
+  text = <<-TEXT
+  An Introdution
+  This is a block of text:
+  Blah blah blah
+  and a list here:
+    1. one
+    2. two
+  CREDITS: Me
+    1. another list item
+          INVENTORY IDS
+            001578971235768
+            001578971887412
+            999
+  ©1999
+  LAST LINE
+  TEXT
+
+  t = TestParser.new
+  t.parse text
+  t.context == {:author=>"Me", :line_items=>["one", "two", "another list item"], :inventory_ids=>["001578971235768", "001578971887412", "999"], :copyright=>"1999", :text=>["An Introdution", "This is a block of text:", "Blah blah blah"]}
