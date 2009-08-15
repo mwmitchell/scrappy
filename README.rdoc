@@ -7,7 +7,7 @@ Instead of throwing together lines and lines of regular expressions and/or strin
 ==Example
   class TestParser
     
-    include Scrappy::Mapper
+    include Scrappy::Mappable
     
     before do
       @context ||= {}
@@ -16,25 +16,29 @@ Instead of throwing together lines and lines of regular expressions and/or strin
       context[:inventory_ids] = []
     end
   
-    # everything from "An Introdution" to "CREDITS"
+    # everything from "An Introdution" to "Blah"
     match /An Introdution/, /Blah/ do |line|
       context[:text] << line
     end
-  
+    
+    # line items that start with a number followed by a period
     match /^\s+[0-9]+\. ([\w+ ]+)$/ do |line,matches|
       context[:line_items] += matches.flatten
     end
-  
+    
+    # everything from "INVENTORY IDS" to "LAST LINE"
     match /INVENTORY IDS/, /LAST LINE/ do |line,matches|
-      # rules for things between INVENTORY IDS nad LAST LINE
+      # numbers inside of "INVENTORY IDS" to "LAST LINE"
       match /^\s+([0-9]+)/ do |line,matches|
         context[:inventory_ids] += matches.flatten
       end
+      # copyright inside of "INVENTORY IDS" to "LAST LINE"
       match /©([0-9]+)/ do |line,matches|
         context[:copyright] = matches.to_s
       end
     end
-  
+    
+    # after "LAST LINE", looking for "CREDITS:"
     match /CREDITS\: (\w+)/ do |line,matches|
       context[:author] = matches.to_s
     end
@@ -57,7 +61,7 @@ Instead of throwing together lines and lines of regular expressions and/or strin
   ©1999
   LAST LINE
   TEXT
-
+  
   t = TestParser.new
   t.parse text
   t.context == {:author=>"Me", :line_items=>["one", "two", "another list item"], :inventory_ids=>["001578971235768", "001578971887412", "999"], :copyright=>"1999", :text=>["An Introdution", "This is a block of text:", "Blah blah blah"]}

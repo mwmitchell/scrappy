@@ -23,6 +23,8 @@ module Scrappy
       end
     end
     
+    alias :rule :match
+    
   end
   
   # parses text, sending each line through a hierarchy of rules
@@ -63,12 +65,12 @@ module Scrappy
     end
     
     def start? text, index
-      stop_start? :start, text, index
+      stop_start? @start, text, index
     end
     
     def stop? text, index
       return true if @stop.empty?
-      stop_start? :stop, text, index
+      stop_start? @stop, text, index
     end
     
     # The "if ! rules.any?" returns true the first time (always).
@@ -94,14 +96,15 @@ module Scrappy
     # runs through each of the stop/start rules
     # passing in lines (incremented) ahead to see if they all match or not.
     # returns false or the position of the match
-    def stop_start?(mode, text, index)
-      result = send(mode).map_with_index {|s,i| text[i+index].scan(s) }
+    def stop_start?(rules, text, index)
+      result = rules.map_with_index {|s,i| text[i+index].scan(s) }
       result.all?{|c|!c.all?{|cc|!cc.all?}} ? result : false
     end
     
   end
   
-  module Mapper
+  # include Mappable to any class 
+  module Mappable
     
     def self.included(b)
       b.extend Ruleable
