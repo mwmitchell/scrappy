@@ -18,9 +18,9 @@ The #match method defines at least one start expression and optional stop expres
     include Scrappy::Mappable
     
     # Setup the "context";
-	# The context object that all rules/matches have access to.
-	# The purpose of this is to provide a common output
-	# object to work with and use after parsing.
+    # The context object that all rules/matches have access to.
+    # The purpose of this is to provide a common output
+    # object to work with and use after parsing.
     before do
       @context ||= {}
       context[:text] = []
