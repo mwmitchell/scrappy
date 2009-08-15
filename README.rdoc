@@ -2,7 +2,15 @@
 An attempt at creating a DSL for parsing texts that don't have much form.
 
 ==Overview
-Instead of throwing together lines and lines of regular expressions and/or string procedures, Scrappy lets you create string matching blocks that have context. The #match method defines at least one start expression and optional stop expressions. Whatever is found from the start/end expressions gets passed to the block. Blocks can continue calling #match to provide a nested context.
+Instead of scripting together lines and lines of regular expressions and/or string procedures, Scrappy lets you create line matching blocks that have context. Context is created by defining nested blocks. Nesting means that you can subdivide your code into more manageable blocks, instead of adding more loops and creating more iteration variables.
+
+Each block represents chunks of text. The blocks are called for each line that match start expressions. The execution stops when the end expressions all pass.
+
+Blocks are called in the same order as the text is arranged so if a previous block matches a chunk of text, the next block will not match the exact same text.
+
+For example, if we have a chunk of text that starts with a header/title and ends with a footnote, we could define a block that parses only that chunk. If that chunk also contained a list of items, we could create a nested block and parse just the list... within the context of the parent. So if the whole text happened to contain lots of similar lists, the parent block would prevent the child from parsing all lists and limit only to the lists found within.
+
+The #match method defines at least one start expression and optional stop expressions. Whatever is found from the start/end expressions gets passed to the block. The default stop is one line.
 
 ==Example
   class TestParser
@@ -19,7 +27,7 @@ Instead of throwing together lines and lines of regular expressions and/or strin
       context[:line_items] = []
       context[:inventory_ids] = []
     end
-  
+  	
     # everything from "An Introdution" to "Blah"
     match /An Introdution/, /Blah/ do |line|
       context[:text] << line
@@ -53,6 +61,7 @@ Instead of throwing together lines and lines of regular expressions and/or strin
   An Introdution
   This is a block of text:
   Blah blah blah
+  @1999 <- this will not be parsed because the copyright above is nested.
   and a list here:
     1. one
     2. two
