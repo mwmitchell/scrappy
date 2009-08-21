@@ -70,7 +70,7 @@ module Scrappy
     
     def stop? text, index
       return true if @stop.empty?
-      stop_start? @stop, text, index
+      stop_start? @stop, text, index+@stop.size
     end
     
     # The "if ! rules.any?" returns true the first time (always).
@@ -87,7 +87,7 @@ module Scrappy
         a = [line,matches,index]
       end
       instance_exec *a, &self.blk if ! self.rules.any?{|r| r.start?(text, index) }
-      parse line#text.slice(index..-1)
+      parse line#text.slice(index+1..-1)
     end
     
     protected

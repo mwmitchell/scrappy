@@ -24,21 +24,25 @@ class ScrappyTestParser
     @context[:notes] << clean unless clean.empty?
   end
   
-  match /^Disallow|^User-agent/ do |line,matches|
-    @context[:rules] ||= []
-    @context[:rules] << [matches, line]
-  end
+  #match /^Disallow|^User-agent/ do |line,matches|
+  #  @context[:rules] ||= []
+  #  @context[:rules] << [matches, line]
+  #end
   
-  match /^WARNING /, /^Robotcop/ do |line|
-    match /^ {4,}/ do |line|
-      @context[:warning] ||= []
-      @context[:warning] << line
-    end
-  end
+  #match /^WARNING /, /^Robotcop/ do |line|
+  #  match /^ {4,}/ do |line|
+  #    @context[:warning] ||= []
+  #    @context[:warning] << line
+  #  end
+  #end
   
-  match(/robot/i) do |line, m|
-    @context[:robots] ||= []
-    @context[:robots] += m.flatten
+  #match(/robot/i) do |line, m|
+  #  @context[:robots] ||= []
+  #  @context[:robots] += m.flatten
+  #end
+  
+  match /^List of/, [/^\s+$/, /^List of/] do |l,m|
+    puts "List of should be here :::::: #{l}"
   end
   
 end
@@ -49,6 +53,8 @@ PARSER = (
   stp.parse File.read(file)
   stp
 )
+
+exit
 
 describe ScrappyTestParser do
   
