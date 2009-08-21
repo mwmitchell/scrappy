@@ -32,10 +32,10 @@ module Scrappy
     
     def parse text
       current = nil
-      text = text.split(/\n/) unless text.is_a? Array
+      text = text.split(/\n|\r/) unless text.is_a? Array
       text.each_with_index do |line,index|
         matches = []
-        if current.nil? and rule = self.rules.detect{|r| matches = (r.start? text, index) }
+        if current.nil? and (rule = self.rules.detect{|r| matches = (r.start? text, index) })
           current = rule
         end
         if current
@@ -87,7 +87,7 @@ module Scrappy
         a = [line,matches,index]
       end
       instance_exec *a, &self.blk if ! self.rules.any?{|r| r.start?(text, index) }
-      parse line
+      parse line#text.slice(index..-1)
     end
     
     protected
@@ -97,8 +97,9 @@ module Scrappy
     # passing in lines (incremented) ahead to see if they all match or not.
     # returns false or the position of the match
     def stop_start?(rules, text, index)
-      result = rules.map_with_index {|s,i| text[i+index].scan(s) }
-      result.all?{|c|!c.all?{|cc|!cc.all?}} ? result : false
+      result = rules.map_with_index {|s,i| text[i+index].scan(s) rescue [] }.flatten
+      result.size == rules.size ? result : false
+      #result.all?{|c| c.size > 0 } ? result : false
     end
     
   end
@@ -140,7 +141,7 @@ module Scrappy
     end
     
     def parse(*args,&blk)
-      result = super
+      result = super *args, &blk
       self.class.events[:after].each do |e|
         instance_eval &e
       end
